@@ -1,7 +1,7 @@
+import jwt, datetime
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-
-
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -32,11 +32,52 @@ class LoginAPIView(APIView):
 
         try:
             user = User.objects.get(username=username)
+            if not user.check_password(password):
+                raise AuthenticationFailed("Incorrect password")
+
+            payload = {
+                "id": user.id,
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+                "iat": datetime.datetime.utcnow()
+            }
+
+            token = jwt.encode(payload, 'secret', algorithm='HS256')
         
         except ObjectDoesNotExist:
             return Response(data={"detail": "User not found"})
         
-        if not user.check_password(password):
-            raise AuthenticationFailed("Incorrect password")
+        response = Response()
+        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.data = {'jwt': token}
+
+        return response
+
+
+class UserAPIView(APIView):
+    
+    def get(self, request):
+        token = request.COOKIES.get("jwt")
         
-        return Response({"You are successfully logged in."})
+        if not token:
+            raise AuthenticationFailed("Unauthenticated")
+
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Unauthenticated!")
+        
+        user = User.objects.get(id = payload.get("id"))
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+
+class LogoutAPIView(APIView):
+    
+    def post(self, request):
+        response = Response()
+        response.delete_cookie('jwt')
+        response.data = {
+            'message': "You have been logged out."
+        }
+    
+        return response
