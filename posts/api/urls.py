@@ -1,17 +1,17 @@
 from django.conf.urls import url
 from django.urls import path, include
-from .views import PostCreateAPIView, LikePostAPIView
+from .views import PostCreateAPIView, LikePostAPIView, LikeAnalyticsAPIView
 from rest_framework import routers
 
 app_name = 'posts-api'
 
 router = routers.SimpleRouter()
-router.register(r'like', LikePostAPIView)
+router.register(r'post/like', LikePostAPIView)
 
 
 urlpatterns = [
-      path('create', PostCreateAPIView.as_view()),
-      # path('like/<int:post>', LikePostAPIView.as_view()),
+      path('post/create', PostCreateAPIView.as_view()),
+      path('analytics/', LikeAnalyticsAPIView.as_view()),
 ]
 
 urlpatterns += router.urls

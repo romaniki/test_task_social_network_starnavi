@@ -1,15 +1,15 @@
 import jwt, datetime
 
-from django.contrib.auth.models import User
-
+from accounts.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404 
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 
 from .serializers import UserSerializer
-
+from .signals import track_login_signal
 
 class RegisterAPIView(APIView):
 
@@ -51,6 +51,8 @@ class LoginAPIView(APIView):
         response.set_cookie(key='jwt', value=token, httponly=True)
         response.data = {'jwt': token}
 
+        track_login_signal.send(sender=user, timestamp=datetime.datetime.now())
+
         return response
 
 
@@ -82,3 +84,23 @@ class LogoutAPIView(APIView):
         }
     
         return response
+
+
+class UserActivityAPIView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        # try:
+        username = self.kwargs.get('username')
+        user = get_object_or_404(User, username=username)
+
+        return Response(
+            {
+            'last login': user.last_login,
+            'last activity': user.last_activity
+            })
+   
+        
+        # except:
+        #     return Response(
+        #         {'message': 'Not authenticated'}
+        #         )

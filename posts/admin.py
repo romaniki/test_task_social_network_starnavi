@@ -9,4 +9,4 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Like)
 class LikeAdmin(admin.ModelAdmin):
-    list_display = ("user", "post", 'like')
+    list_display = ("user", "post", 'like', 'timestamp')

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from posts.models import Post, Like
-from django.contrib.auth.models import User
+from accounts.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -26,4 +26,4 @@ class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Like
-        fields = ['user', 'post', 'like']
+        fields = ['user', 'post', 'like', 'timestamp']
