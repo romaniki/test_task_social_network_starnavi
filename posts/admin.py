@@ -4,7 +4,7 @@ from .models import Post, Like
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("id","author", "content", "created")
+    list_display = ("id", "author", "content", "created")
 
 
 @admin.register(Like)

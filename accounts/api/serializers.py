@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from accounts.models import User
-from django.contrib.auth import authenticate
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -13,7 +12,6 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
-    
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)

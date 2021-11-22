@@ -14,14 +14,16 @@ from .serializers import PostSerializer, LikeSerializer
 from .signals import track_activity_signal
 from posts.models import Post, Like
 
+
 def get_current_user(token):
-        if not token:
-            raise AuthenticationFailed("Unauthenticated")
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed("Unauthenticated!")
-        return User.objects.get(id = payload.get("id"))
+    """Get current user object generated JWT token"""
+    if not token:
+        raise AuthenticationFailed("Unauthenticated")
+    try:
+        payload = jwt.decode(token, 'secret', algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed("Unauthenticated!")
+    return User.objects.get(id=payload.get("id"))
 
 
 class PostCreateAPIView(generics.CreateAPIView):
@@ -42,16 +44,18 @@ class LikePostAPIView(UpdateModelMixin, GenericViewSet):
     def get_object(self):
         token = self.request.COOKIES.get("jwt")
         obj, _ = Like.objects.get_or_create(user=get_current_user(token), post=Post.objects.get(id=self.kwargs['post']))
-        
+
+        # Keep track of the last like and unlike activities
         track_activity_signal.send(sender=get_current_user(token), timestamp=datetime.now())
-        
+
         return obj
 
 
 class LikeAnalyticsAPIView(APIView):
+    """Analytics about how many likes was made aggregated by day."""
 
     def get(self, request):
-        
+
         date_from = request.GET.get('date_from')
         date_to = request.GET.get('date_to')
         aggregated_by_date = {}
