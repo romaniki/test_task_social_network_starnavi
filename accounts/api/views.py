@@ -1,6 +1,7 @@
 import jwt, datetime
 
 from django.contrib.auth.models import User
+
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.views import APIView
@@ -73,7 +74,7 @@ class UserAPIView(APIView):
 
 class LogoutAPIView(APIView):
     
-    def post(self, request):
+    def get(self, request):
         response = Response()
         response.delete_cookie('jwt')
         response.data = {
