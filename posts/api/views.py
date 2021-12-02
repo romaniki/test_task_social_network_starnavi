@@ -1,6 +1,8 @@
 import jwt
 from datetime import datetime
 
+from django.db.models import Count
+
 from accounts.models import User
 
 from rest_framework.response import Response
@@ -55,22 +57,17 @@ class LikeAnalyticsAPIView(APIView):
     """Analytics about how many likes was made aggregated by day."""
 
     def get(self, request):
-
+        
         date_from = request.GET.get('date_from')
         date_to = request.GET.get('date_to')
-        aggregated_by_date = {}
 
-        likes = Like.objects.filter(timestamp__range=[date_from, date_to], like=True)
-
-        for like in likes:
-            date = like.timestamp.date().strftime("%d/%m/%Y")
-            if date not in aggregated_by_date:
-                aggregated_by_date[date] = 1
-            else:
-                aggregated_by_date[date] += 1
+        likes = Like.objects\
+            .filter(timestamp__range=[date_from, date_to], like=True)\
+            .values('timestamp__date')\
+            .annotate(**{'total':Count('timestamp__date')})\
 
         response = Response()
         response.data = {
-            'likes': aggregated_by_date
+            'likes': likes
         }
         return response
